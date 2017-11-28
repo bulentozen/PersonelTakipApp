@@ -23,6 +23,7 @@ namespace PT.Entitiy.IdentityModel
 
         public decimal Salary { get; set; }
         public int? DepartmentID { get; set; }
+        public string ActivationCode { get; set; }
 
         [ForeignKey("DepartmentID")]
         public virtual Department Department { get; set; }
