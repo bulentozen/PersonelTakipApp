@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.AspNet.Identity;
+using PT.BLL.AccountRepository;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -13,6 +15,20 @@ namespace PTWebMVC
         {
             AreaRegistration.RegisterAllAreas();
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+
+            var roleManager = MemberShipTools.NewRoleManager();
+            if (!roleManager.RoleExists("Admin"))
+            {
+                roleManager.Create(new PT.Entitiy.IdentityModel.ApplicationRole() {Name="Admin",Description="Sistem Yöneticisi" });
+            }
+            if (!roleManager.RoleExists("User"))
+            {
+                roleManager.Create(new PT.Entitiy.IdentityModel.ApplicationRole() { Name = "User", Description = "Sistem Kullanıcısı" });
+            }
+            if (!roleManager.RoleExists("Passive"))
+            {
+                roleManager.Create(new PT.Entitiy.IdentityModel.ApplicationRole() { Name = "Passive", Description = "E-Mail Aktivasyonu Gerekli" });
+            }
         }
     }
 }
