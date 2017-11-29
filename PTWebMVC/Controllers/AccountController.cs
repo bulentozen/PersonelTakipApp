@@ -36,6 +36,13 @@ namespace PTWebMVC.Controllers
                 return View(model);
             }
 
+            checkUser = userManager.FindByEmail(model.Email);
+            if (checkUser !=null)
+            {
+                ModelState.AddModelError(string.Empty,"Bu E posta adresi kullanılmakta");
+                return View(model);
+            }
+
             //register işlemi yapılır.
             var activitationCode = Guid.NewGuid().ToString();
             ApplicationUser user = new ApplicationUser()
