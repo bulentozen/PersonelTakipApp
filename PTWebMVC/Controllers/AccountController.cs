@@ -135,7 +135,7 @@ namespace PTWebMVC.Controllers
 
             userManager.RemoveFromRole(sonuc.Id, "Passive");
             userManager.AddToRole(sonuc.Id,"User");
-            ViewBag.sonuc = $"Merhaba  {sonuc.Name}{sonuc.SurName} <br/> Aktivasyon işleminiz başarılı";
+            ViewBag.sonuc = $"Merhaba  {sonuc.Name} {sonuc.SurName} <br/> Aktivasyon işleminiz başarılı";
 
             await SiteSettings.SendMail(new MainModel()
             {
@@ -145,6 +145,36 @@ namespace PTWebMVC.Controllers
                 Bcc="poyildirim@gmail.com"
             });
 
+            return View();
+        }
+        public ActionResult RecoverPassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RecoverPassword(string email)
+        {
+            var userStore = MemberShipTools.NewUserStore();
+            var userManager = new UserManager<ApplicationUser>(userStore);
+            var sonuc = userStore.Context.Set<ApplicationUser>().FirstOrDefault(x=>x.Email==email);
+            if (sonuc==null)
+            {
+                ViewBag.sonuc = "E mail adresiniz sisteme kayıtlı değil";
+                return View();
+            }
+            var randomPass = Guid.NewGuid().ToString().Replace("-", "").Substring(0, 6);
+            await userStore.SetPasswordHashAsync(sonuc,userManager.PasswordHasher.HashPassword(randomPass));
+            await userStore.UpdateAsync(sonuc);
+            await userStore.Context.SaveChangesAsync();
+
+            await SiteSettings.SendMail(new MainModel()
+            {
+                To = sonuc.Email,
+                Subject = "Şifreniz Değişti",
+                Message = $"Merhaba {sonuc.Name}  {sonuc.SurName}  <br/>Yeni Şifreniz: <b>{randomPass}</b>"
+            });
+            ViewBag.sonuc = "E mail adresinize yeni şifreniz gönderilmiştir";
             return View();
         }
     }
