@@ -17,7 +17,7 @@ namespace PT.BLL.Settings
         public static int SiteMailSmtpPort = 587;
         public static bool SiteMailEnableSsl = true;
 
-        public async static Task SendMail(MainModel model)
+        public async static Task SendMail(MailModel model)
         {
             using (var smtp = new SmtpClient())
             {

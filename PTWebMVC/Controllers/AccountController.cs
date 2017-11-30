@@ -62,7 +62,7 @@ namespace PTWebMVC.Controllers
                 if (userManager.Users.Count() == 1)
                 {
                     userManager.AddToRole(user.Id, "Admin");
-                    await SiteSettings.SendMail(new MainModel
+                    await SiteSettings.SendMail(new MailModel
                     {
                         To = user.Email,
                         Subject = "Hoşgeldin Sahip!",
@@ -73,7 +73,7 @@ namespace PTWebMVC.Controllers
                 else
                 {
                     userManager.AddToRole(user.Id, "Passive");
-                    await SiteSettings.SendMail(new MainModel
+                    await SiteSettings.SendMail(new MailModel
                     {
                         To = user.Email,
                         Subject = "Personel Yönetimi - Aktivasyon",
@@ -144,7 +144,7 @@ namespace PTWebMVC.Controllers
             userManager.AddToRole(sonuc.Id,"User");
             ViewBag.sonuc = $"Merhaba  {sonuc.Name} {sonuc.SurName} <br/> Aktivasyon işleminiz başarılı";
 
-            await SiteSettings.SendMail(new MainModel()
+            await SiteSettings.SendMail(new MailModel()
             {
                 To = sonuc.Email,
                 Message = ViewBag.sonuc.ToString(),
@@ -175,7 +175,7 @@ namespace PTWebMVC.Controllers
             await userStore.UpdateAsync(sonuc);
             await userStore.Context.SaveChangesAsync();
 
-            await SiteSettings.SendMail(new MainModel()
+            await SiteSettings.SendMail(new MailModel()
             {
                 To = sonuc.Email,
                 Subject = "Şifreniz Değişti",
@@ -183,6 +183,72 @@ namespace PTWebMVC.Controllers
             });
             ViewBag.sonuc = "E mail adresinize yeni şifreniz gönderilmiştir";
             return View();
+        }
+
+        [Authorize]
+        public ActionResult Profile()
+        {
+            var userManager = MemberShipTools.NewUserManager();
+            var user = userManager.FindById(HttpContext.GetOwinContext().Authentication.User.Identity.GetUserId());
+            var model = new ProfileViewModel()
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Name = user.Name,
+                SurName = user.SurName,
+                UserName = user.UserName
+
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Profile(ProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+            var userStore = MemberShipTools.NewUserStore();
+            var userManager = new UserManager<ApplicationUser>(userStore);
+            var user = userManager.FindById(model.Id);
+            user.Name = model.Name;
+            user.SurName = model.SurName;
+            if (user.Email !=model.Email)
+            {
+                user.Email = model.Email;
+                if (HttpContext.User.IsInRole("Admin"))
+                {
+                    userManager.RemoveFromRole(user.Id,"Admin");
+                }
+                else if (HttpContext.User.IsInRole("User"))
+                {
+                    userManager.RemoveFromRole(user.Id, "User");
+                }
+
+                userManager.AddToRole(user.Id, "Passive");
+                user.ActivationCode = Guid.NewGuid().ToString().Replace("-","");
+                string siteURL = Request.Url.Scheme + Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+                await SiteSettings.SendMail(new MailModel
+                {
+                    To=user.Email,
+                    Subject="Personel Yönetimi - Aktivasyon",
+                    Message= $"Merhaba {user.Name} {user.SurName} <br/> Email adresinizi <b> değiştirdiğiniz </b> için hesabınızı tekrar aktif etmelisiniz. <a href='{siteURL}/Account/Activation?code={user.ActivationCode}'>Aktivasyon Kodu </a>"
+                });
+
+            }
+            
+            await userStore.UpdateAsync(user);
+            await userStore.Context.SaveChangesAsync();
+            var model1 = new ProfileViewModel()
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Name = user.Name,
+                SurName = user.SurName,
+                UserName = user.UserName
+            };
+            ViewBag.sonuc = "Bilgileriniz güncelleştirilmiştir.";
+            return View(model1);
         }
     }
 }

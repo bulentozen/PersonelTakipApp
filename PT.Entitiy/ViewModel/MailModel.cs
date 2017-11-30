@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PT.Entitiy.ViewModel
 {
-    public class MainModel
+    public class MailModel
     {
         public string To { get; set; }
         public List<string> ToList { get; set; } = new List<string>();
