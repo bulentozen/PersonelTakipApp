@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace PT.Entitiy.ViewModel
 {
+    public class ProfilePasswordViewModel
+    {
+        public ProfileViewModel ProfileModel { get; set; } = new ProfileViewModel();
+        public PasswordViewModel PasswordModel { get; set; } = new PasswordViewModel();
+    }
    public class ProfileViewModel
     {
         public string Id { get; set; }
@@ -24,9 +29,15 @@ namespace PT.Entitiy.ViewModel
         [Required]
         [EmailAddress]
         public string Email { get; set; }
+        
+
+
+    }
+    public class PasswordViewModel
+    {
         [DataType(DataType.Password)]
         [Display(Name = "Eski Şifre")]
-        [StringLength(100,MinimumLength =5,ErrorMessage ="Şifreniz en az 5 karakter olmalıdır!")]
+        [StringLength(100, MinimumLength = 5, ErrorMessage = "Şifreniz en az 5 karakter olmalıdır!")]
         public string OldPassword { get; set; }
         [DataType(DataType.Password)]
         [Display(Name = "Yeni Şifre")]
@@ -34,10 +45,8 @@ namespace PT.Entitiy.ViewModel
         public string NewPassword { get; set; }
         [DataType(DataType.Password)]
         [Display(Name = "Şifre Tekrar")]
-        [Compare("NewPassword",ErrorMessage ="Şifreler Uyuşmuyor")]
+        [Compare("NewPassword", ErrorMessage = "Şifreler Uyuşmuyor")]
         [StringLength(100, MinimumLength = 5, ErrorMessage = "Şifreniz en az 5 karakter olmalıdır!")]
         public string NewPasswordConfirm { get; set; }
-
-
     }
 }
